@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VetAcademy - منصة الطب البيطري الأكاديمية</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6a11cb;
+            --secondary: #2575fc;
+            --accent: #8e44ad;
+            --white: #ffffff;
+            --glass: rgba(255, 255, 255, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-dark: #333;
+            --text-light: #666;
+            --danger: #e74c3c;
+            --success: #2ecc71;
+            --gradient: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+        }
+
+        /* Dark Mode Variables */
+        [data-theme="dark"] {
+            --primary: #4a0072;
+            --secondary: #1a237e;
+            --white: #121212;
+            --glass: rgba(30, 30, 30, 0.9);
+            --text-dark: #eee;
+            --text-light: #aaa;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; transition: all 0.3s ease; }
+        
+        body {
+            background: var(--gradient);
+            min-height: 100vh;
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Classes */
+        .glass-panel {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        /* Layout */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .nav-item {
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-dark);
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 15px;
+        }
+
+        /* Cards & Grid */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            padding: 20px;
+            border-radius: 15px;
+            background: rgba(255,255,255,0.5);
+            border-left: 5px solid var(--primary);
+        }
+
+        /* Auth Screen */
+        .auth-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--gradient);
+            z-index: 1000;
+        }
+
+        .auth-box {
+            width: 400px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            text-align: right;
+        }
+        
+        /* LTR Support for Inputs */
+        [dir="ltr"] .input-group { text-align: left; }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            outline: none;
+            margin-top: 5px;
+        }
+
+        button.btn-primary {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        button.btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.4);
+        }
+
+        /* Tools Styles */
+        .timer-display {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--primary);
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: var(--white);
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            border-right: 5px solid var(--success);
+            transform: translateX(-200%);
+            transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 2000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        /* Utilities */
+        .hidden { display: none !important; }
+        .text-purple { color: var(--primary); }
+        .badge { background: var(--accent); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-container { flex-direction: column; }
+            .sidebar { width: 100%; flex-direction: row; overflow-x: auto; padding: 10px; }
+            .nav-item span { display: none; }
+            .nav-item i { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="authScreen" class="auth-screen">
+        <div class="glass-panel auth-box">
+            <i class="fas fa-paw fa-3x text-purple" style="margin-bottom: 20px;"></i>
+            <h2 style="margin-bottom: 20px;">منصة الطب البيطري</h2>
+            <form id="loginForm">
+                <div class="input-group">
+                    <label>البريد الإلكتروني</label>
+                    <input type="email" id="email" placeholder="email@university.edu" required>
+                </div>
+                <div class="input-group">
+                    <label>كلمة المرور</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn-primary">تسجيل الدخول</button>
+            </form>
+            <p style="margin-top: 15px; font-size: 0.9em; color: #666;">
+                للتجربة (مدير): AcademicVETnew@admin.com <br> AcaDemic_2025_New
+            </p>
+        </div>
+    </div>
+
+    <div id="app" class="app-container hidden">
+        <aside class="glass-panel sidebar">
+            <div class="logo">
+                <i class="fas fa-stethoscope"></i> VetAcademy
+            </div>
+            <nav>
+                <div class="nav-item active" onclick="router('dashboard')">
+                    <i class="fas fa-home"></i> <span>الرئيسية</span>
+                </div>
+                <div class="nav-item" onclick="router('courses')">
+                    <i class="fas fa-book-medical"></i> <span>المواد الدراسية</span>
+                </div>
+                <div class="nav-item" onclick="router('tools')">
+                    <i class="fas fa-calculator"></i> <span>الأدوات التعليمية</span>
+                </div>
+                <div class="nav-item" onclick="router('schedule')">
+                    <i class="fas fa-calendar-alt"></i> <span>الامتحانات والمهام</span>
+                </div>
+                <div class="nav-item" id="adminLink" onclick="router('admin')" style="display: none;">
+                    <i class="fas fa-user-shield"></i> <span>لوحة الإدارة</span>
+                </div>
+            </nav>
+            <div style="margin-top: auto;">
+                <div class="nav-item" onclick="toggleLang()">
+                    <i class="fas fa-language"></i> <span>English/عربي</span>
+                </div>
+                <div class="nav-item" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> <span>خروج</span>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="glass-panel header">
+                <div>
+                    <h2 id="pageTitle">لوحة التحكم</h2>
+                    <p id="welcomeMsg" style="color: var(--text-light); font-size: 0.9rem;">مرحباً بك في المنصة الأكاديمية</p>
+                </div>
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <button class="glass-panel" style="border: none; padding: 10px; cursor: pointer;" onclick="toggleTheme()">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <div class="glass-panel" style="padding: 5px 15px; display: flex; align-items: center; gap: 10px;">
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=6a11cb&color=fff" style="width: 30px; border-radius: 50%;">
+                        <span id="userNameDisplay" style="font-weight: bold;">User</span>
+                    </div>
+                </div>
+            </header>
+
+            <div id="view-dashboard" class="view-section">
+                <div class="grid-container">
+                    <div class="glass-panel card">
+                        <h3><i class="fas fa-chart-line text-purple"></i> المعدل التراكمي</h3>
+                        <p style="font-size: 2rem; font-weight: bold;">3.85</p>
+                        <small>ممتاز مرتفع</small>
+                    </div>
+                    <div class="glass-panel card">
+                        <h3><i class="fas fa-tasks text-purple"></i> المهام المعلقة</h3>
+                        <p style="font-size: 2rem; font-weight: bold;">4</p>
+                        <small>مهام لهذا الأسبوع</small>
+                    </div>
+                    <div class="glass-panel card">
+                        <h3><i class="fas fa-book text-purple"></i> المواد المسجلة</h3>
+                        <p style="font-size: 2rem; font-weight: bold;">6</p>
+                        <small>الفصل الدراسي الحالي</small>
+                    </div>
+                </div>
+                
+                <h3 style="margin: 25px 0 15px;">آخر الإعلانات</h3>
+                <div class="glass-panel" style="padding: 20px;">
+                    <div style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px;">
+                        <h4 style="color: var(--primary);">📢 موعد امتحان التشريح (Anatomy)</h4>
+                        <p style="color: var(--text-light);">تم تحديد موعد الامتحان النصفي يوم الثلاثاء في القاعة 101.</p>
+                        <small style="color: #999;">منذ 2 ساعة</small>
+                    </div>
+                    <div>
+                        <h4 style="color: var(--primary);">🎉 ورشة عمل: الجراحة البيطرية</h4>
+                        <p style="color: var(--text-light);">انضم إلينا في ورشة عمل خاصة عن خياطة الجروح للحيوانات الكبيرة.</p>
+                        <small style="color: #999;">أمس</small>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-courses" class="view-section hidden">
+                <div class="grid-container">
+                    <div class="glass-panel card">
+                        <div style="height: 100px; background: #e1bee7; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-horse fa-3x text-purple"></i>
+                        </div>
+                        <h3>تشريح الحيوان (Anatomy)</h3>
+                        <p>سنة 2 - فصل 1</p>
+                        <div style="margin-top: 10px;">
+                            <span class="badge">سلايدات</span>
+                            <span class="badge">تسجيلات</span>
+                        </div>
+                        <button class="btn-primary" style="margin-top: 15px;">فتح المادة</button>
+                    </div>
+                    <div class="glass-panel card">
+                        <div style="height: 100px; background: #d1c4e9; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-pills fa-3x text-purple"></i>
+                        </div>
+                        <h3>علم الأدوية (Pharmacology)</h3>
+                        <p>سنة 3 - فصل 2</p>
+                        <div style="margin-top: 10px;">
+                            <span class="badge">كويزات</span>
+                            <span class="badge">تلاخيص</span>
+                        </div>
+                        <button class="btn-primary" style="margin-top: 15px;">فتح المادة</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-tools" class="view-section hidden">
+                <div class="grid-container">
+                    <div class="glass-panel card" style="text-align: center;">
+                        <h3><i class="fas fa-clock text-purple"></i> مؤقت بومودورو</h3>
+                        <div class="timer-display" id="timer">25:00</div>
+                        <div style="display: flex; gap: 10px; justify-content: center;">
+                            <button class="btn-primary" onclick="startTimer()">ابدأ</button>
+                            <button class="btn-primary" style="background: var(--danger);" onclick="resetTimer()">إعادة</button>
+                        </div>
+                        <p style="margin-top: 10px; font-size: 0.9rem;">جلسة دراسية مركزة</p>
+                    </div>
+
+                    <div class="glass-panel card">
+                        <h3><i class="fas fa-calculator text-purple"></i> حاسبة المعدل</h3>
+                        <div class="input-group">
+                            <input type="number" placeholder="العلامة (مثال: 90)" id="gradeInput">
+                            <input type="number" placeholder="الساعات (مثال: 3)" id="hoursInput">
+                        </div>
+                        <button class="btn-primary" onclick="calculateGPA()">إضافة وحساب</button>
+                        <p style="margin-top: 10px;">المعدل التراكمي: <span id="gpaResult" style="font-weight: bold;">0.00</span></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="view-admin" class="view-section hidden">
+                <div class="glass-panel" style="padding: 20px;">
+                   <h3><i class="fas fa-cogs"></i> لوحة تحكم المدير</h3>
+                   <p style="margin-bottom: 20px;">إدارة المستخدمين والمحتوى</p>
+                   
+                   <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                       <button class="btn-primary" style="width: auto;"><i class="fas fa-plus"></i> إضافة مادة</button>
+                       <button class="btn-primary" style="width: auto; background: var(--secondary);"><i class="fas fa-user-plus"></i> إضافة طالب</button>
+                       <button class="btn-primary" style="width: auto; background: #e67e22;"><i class="fas fa-download"></i> تصدير البيانات (JSON)</button>
+                   </div>
+
+                   <table style="width: 100%; border-collapse: collapse;">
+                       <thead>
+                           <tr style="background: rgba(0,0,0,0.05); text-align: right;">
+                               <th style="padding: 10px;">الاسم</th>
+                               <th style="padding: 10px;">النوع</th>
+                               <th style="padding: 10px;">الحالة</th>
+                               <th style="padding: 10px;">إجراءات</th>
+                           </tr>
+                       </thead>
+                       <tbody>
+                           <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                               <td style="padding: 10px;">أحمد محمد</td>
+                               <td style="padding: 10px;">طالب (سنة 4)</td>
+                               <td style="padding: 10px;"><span class="badge" style="background: green;">نشط</span></td>
+                               <td style="padding: 10px;"><i class="fas fa-edit"></i> <i class="fas fa-trash text-purple"></i></td>
+                           </tr>
+                       </tbody>
+                   </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <div id="toast" class="notification">
+        <i class="fas fa-check-circle"></i> <span id="toastMsg">تمت العملية بنجاح</span>
+    </div>
+
+    <script>
+        // --- State Management ---
+        const state = {
+            user: null, // 'admin' or 'student'
+            timerInterval: null,
+            timerTime: 25 * 60,
+            gpaPoints: 0,
+            gpaHours: 0
+        };
+
+        const ADMIN_CREDS = {
+            email: "AcademicVETnew@admin.com",
+            pass: "AcaDemic_2025_New"
+        };
+
+        // --- Auth Functions ---
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+
+            if(email === ADMIN_CREDS.email && pass === ADMIN_CREDS.pass) {
+                login('admin');
+            } else if (email && pass) {
+                login('student');
+            } else {
+                showToast("الرجاء إدخال البيانات", true);
+            }
+        });
+
+        function login(type) {
+            state.user = type;
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+            
+            document.getElementById('userNameDisplay').innerText = type === 'admin' ? "المدير العام" : "طالب بيطري";
+            
+            if(type === 'admin') {
+                document.getElementById('adminLink').style.display = 'flex';
+            }
+            showToast(`مرحباً بك، تسجيل دخول ${type === 'admin' ? 'المدير' : 'الطالب'}`);
+        }
+
+        function logout() {
+            location.reload();
+        }
+
+        // --- Routing ---
+        function router(viewName) {
+            // Hide all views
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            // Remove active class from nav
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            // Show selected
+            document.getElementById(`view-${viewName}`).classList.remove('hidden');
+            
+            // Highlight Nav
+            // (Simple implementation finding nav by index or text matching could be better)
+            
+            const titles = {
+                'dashboard': 'لوحة التحكم',
+                'courses': 'المواد الدراسية',
+                'tools': 'الأدوات الذكية',
+                'schedule': 'جدول الامتحانات',
+                'admin': 'إعدادات النظام'
+            };
+            document.getElementById('pageTitle').innerText = titles[viewName] || 'الرئيسية';
+        }
+
+        // --- Tools Logic ---
+        // Pomodoro
+        function startTimer() {
+            if(state.timerInterval) return;
+            
+            state.timerInterval = setInterval(() => {
+                state.timerTime--;
+                const m = Math.floor(state.timerTime / 60).toString().padStart(2, '0');
+                const s = (state.timerTime % 60).toString().padStart(2, '0');
+                document.getElementById('timer').innerText = `${m}:${s}`;
+
+                if(state.timerTime <= 0) {
+                    clearInterval(state.timerInterval);
+                    showToast("انتهت الجلسة الدراسية! خذ استراحة.");
+                    state.timerTime = 25 * 60;
+                }
+            }, 1000);
+        }
+
+        function resetTimer() {
+            clearInterval(state.timerInterval);
+            state.timerInterval = null;
+            state.timerTime = 25 * 60;
+            document.getElementById('timer').innerText = "25:00";
+        }
+
+        // GPA
+        function calculateGPA() {
+            const g = parseFloat(document.getElementById('gradeInput').value); // Using mark out of 100 for simplicity
+            const h = parseFloat(document.getElementById('hoursInput').value);
+            
+            if(!g || !h) return;
+
+            // Simple conversion logic (Example)
+            let points = 0;
+            if(g >= 90) points = 4.0;
+            else if(g >= 80) points = 3.0;
+            else if(g >= 70) points = 2.0;
+            else if(g >= 60) points = 1.0;
+            
+            state.gpaPoints += (points * h);
+            state.gpaHours += h;
+            
+            const gpa = (state.gpaPoints / state.gpaHours).toFixed(2);
+            document.getElementById('gpaResult').innerText = gpa;
+            showToast("تمت إضافة المادة بنجاح");
+            
+            document.getElementById('gradeInput').value = '';
+            document.getElementById('hoursInput').value = '';
+        }
+
+        // --- UI Utils ---
+        function showToast(msg, isError = false) {
+            const t = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            t.style.borderRightColor = isError ? 'var(--danger)' : 'var(--success)';
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            if(body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+            }
+        }
+
+        function toggleLang() {
+            const html = document.documentElement;
+            if(html.getAttribute('dir') === 'rtl') {
+                html.setAttribute('dir', 'ltr');
+                html.setAttribute('lang', 'en');
+                // You would realistically swap text content here
+            } else {
+                html.setAttribute('dir', 'rtl');
+                html.setAttribute('lang', 'ar');
+            }
+        }
+    </script>
+</body>
+</html>
