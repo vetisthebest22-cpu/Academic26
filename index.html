@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic VET Platform | المنصة الأكاديمية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Cairo', 'sans-serif'] },
+                    colors: {
+                        primary: '#6d28d9', // Default Purple
+                        secondary: '#4c1d95',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Glassmorphism & Custom Styles */
+        body { font-family: 'Cairo', sans-serif; transition: background-color 0.3s; }
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        .dark .glass {
+            background: rgba(17, 24, 39, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .animate-fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        
+        .toast { position: fixed; bottom: 20px; left: 20px; z-index: 50; transform: translateY(100px); transition: transform 0.3s; }
+        .toast.show { transform: translateY(0); }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100 min-h-screen overflow-x-hidden">
+
+    <div id="authContainer" class="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-600 to-blue-500">
+        <div class="glass p-8 rounded-2xl shadow-2xl w-full max-w-md animate-fade-in bg-white dark:bg-gray-800">
+            <div class="text-center mb-6">
+                <i class="fas fa-paw text-5xl text-purple-600 dark:text-purple-400 mb-2"></i>
+                <h1 class="text-2xl font-bold" data-translate="welcome">لجنة الطب والجراحة البيطرية</h1>
+                <p class="text-sm opacity-75">Academic VET Platform</p>
+            </div>
+            
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm mb-1" data-translate="email">البريد الإلكتروني</label>
+                    <input type="email" id="loginEmail" class="w-full p-3 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="example@vet.com">
+                </div>
+                <div>
+                    <label class="block text-sm mb-1" data-translate="password">كلمة المرور</label>
+                    <input type="password" id="loginPass" class="w-full p-3 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <button type="submit" class="w-full py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold transition transform hover:scale-105" data-translate="loginBtn">دخول</button>
+            </form>
+            
+            <div class="mt-4 text-center">
+                <a href="#" onclick="toggleAuth('register')" class="text-sm text-purple-600 dark:text-purple-400 hover:underline" data-translate="createAccount">إنشاء حساب طالب جديد</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="appContainer" class="hidden flex h-screen">
+        
+        <aside class="w-64 glass hidden md:flex flex-col border-l border-gray-200 dark:border-gray-800 z-20">
+            <div class="p-6 flex items-center justify-center border-b border-gray-200 dark:border-gray-800">
+                <i class="fas fa-user-md text-3xl text-purple-600 mr-2"></i>
+                <span class="font-bold text-lg">Academic VET</span>
+            </div>
+            
+            <nav class="flex-1 overflow-y-auto py-4">
+                <ul class="space-y-2 px-4" id="mainNav">
+                    </ul>
+            </nav>
+
+            <div class="p-4 border-t border-gray-200 dark:border-gray-800">
+                <button onclick="logout()" class="flex items-center w-full p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition">
+                    <i class="fas fa-sign-out-alt w-6"></i>
+                    <span data-translate="logout">تسجيل خروج</span>
+                </button>
+            </div>
+        </aside>
+
+        <div class="md:hidden fixed top-0 w-full glass z-30 p-4 flex justify-between items-center shadow-md">
+            <i class="fas fa-paw text-purple-600 text-xl"></i>
+            <button onclick="document.querySelector('aside').classList.toggle('hidden'); document.querySelector('aside').classList.toggle('absolute');" class="text-gray-600 dark:text-gray-300">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+
+        <main class="flex-1 overflow-y-auto relative pt-16 md:pt-0">
+            <header class="glass sticky top-0 z-10 px-6 py-3 flex justify-between items-center shadow-sm">
+                <h2 id="pageTitle" class="text-xl font-bold text-gray-800 dark:text-white">الرئيسية</h2>
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleLang()" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+                        <i class="fas fa-language text-xl"></i>
+                    </button>
+                    <button onclick="toggleTheme()" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+                        <i class="fas fa-moon text-xl" id="themeIcon"></i>
+                    </button>
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white font-bold" id="userAvatar">U</div>
+                        <span class="text-sm font-semibold hidden sm:inline" id="userNameDisplay">User</span>
+                    </div>
+                </div>
+            </header>
+
+            <div id="contentArea" class="p-6 space-y-6">
+                </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast glass px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 border-r-4 border-purple-500">
+        <i class="fas fa-info-circle text-purple-500"></i>
+        <span id="toastMsg">Notification</span>
+    </div>
+
+    <script>
+        // --- Configuration & State ---
+        const CONFIG = {
+            DEMO_MODE: true, // Set to false to use JSONBin
+            JSONBIN_KEY: '$2a$10$YourMasterKeyHere', // Placeholder
+            BINS: { users: 'id1', subjects: 'id2' }, // Placeholder IDs
+            ADMIN_EMAIL: 'AcademicVETnew@admin.com',
+            ADMIN_PASS: 'AcaDemic_2025_New'
+        };
+
+        const DB_KEYS = { USERS: 'vet_users', SUBJECTS: 'vet_subjects', POSTS: 'vet_posts', TASKS: 'vet_tasks', SETTINGS: 'vet_settings' };
+        
+        let state = {
+            user: null, // {id, name, email, role, year}
+            lang: 'ar',
+            theme: 'light',
+            db: {}
+        };
+
+        // --- Translations ---
+        const DICT = {
+            ar: {
+                welcome: "لجنة الطب والجراحة البيطرية",
+                email: "البريد الإلكتروني",
+                password: "كلمة المرور",
+                loginBtn: "دخول",
+                createAccount: "إنشاء حساب طالب جديد",
+                home: "الرئيسية",
+                subjects: "المواد الدراسية",
+                chat: "الدردشات",
+                tools: "الأدوات التعليمية",
+                exams: "جدول الامتحانات",
+                admin: "لوحة الإدارة",
+                logout: "تسجيل خروج",
+                gpaCalc: "حاسبة المعدل",
+                pomodoro: "مؤقت بومودورو",
+                todo: "قائمة المهام",
+                posts: "المنشورات والأخبار",
+                adminPanel: "لوحة تحكم المدير",
+                year: "السنة الدراسية",
+                semester: "الفصل الدراسي"
+            },
+            en: {
+                welcome: "Vet Medicine & Surgery Committee",
+                email: "Email",
+                password: "Password",
+                loginBtn: "Login",
+                createAccount: "Create New Student Account",
+                home: "Home",
+                subjects: "Subjects",
+                chat: "Chats",
+                tools: "Education Tools",
+                exams: "Exams Schedule",
+                admin: "Admin Panel",
+                logout: "Logout",
+                gpaCalc: "GPA Calculator",
+                pomodoro: "Pomodoro Timer",
+                todo: "To-Do List",
+                posts: "Posts & News",
+                adminPanel: "Admin Dashboard",
+                year: "Academic Year",
+                semester: "Semester"
+            }
+        };
+
+        function t(key) { return DICT[state.lang][key] || key; }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSettings();
+            initDB(); // Load or create default data
+            checkSession();
+            renderTranslate();
+        });
+
+        function loadSettings() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            const savedLang = localStorage.getItem('lang') || 'ar';
+            
+            setTheme(savedTheme);
+            setLang(savedLang);
+        }
+
+        function initDB() {
+            if(CONFIG.DEMO_MODE) {
+                if(!localStorage.getItem(DB_KEYS.USERS)) {
+                    // Seed Data
+                    const admin = { id: 1, name: 'Admin', email: CONFIG.ADMIN_EMAIL, pass: btoa(CONFIG.ADMIN_PASS), role: 'admin' };
+                    const student = { id: 2, name: 'Student Demo', email: 'student@vet.com', pass: btoa('123456'), role: 'student', year: 4 };
+                    localStorage.setItem(DB_KEYS.USERS, JSON.stringify([admin, student]));
+                    
+                    // Seed Subjects
+                    const subjects = [
+                        {id: 1, name: 'Anatomy I', year: 1, semester: 1, type: 'academic'},
+                        {id: 2, name: 'Histology', year: 1, semester: 1, type: 'academic'},
+                        {id: 3, name: 'Surgery I', year: 4, semester: 1, type: 'academic'},
+                        {id: 4, name: 'English 101', year: 1, semester: 1, type: 'uni_comp'},
+                        {id: 5, name: 'Psychology', year: 2, semester: 2, type: 'uni_free'}
+                    ];
+                    localStorage.setItem(DB_KEYS.SUBJECTS, JSON.stringify(subjects));
+                    
+                    // Seed Posts
+                    const posts = [
+                        {id: 1, author: 'Admin', content: 'Welcome to the new academic platform! | أهلاً بكم في المنصة الجديدة', date: new Date().toLocaleDateString(), likes: 10}
+                    ];
+                    localStorage.setItem(DB_KEYS.POSTS, JSON.stringify(posts));
+                }
+            }
+        }
+
+        // --- Authentication ---
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPass').value;
+            
+            const users = JSON.parse(localStorage.getItem(DB_KEYS.USERS) || '[]');
+            const user = users.find(u => u.email === email && u.pass === btoa(pass));
+
+            if(user) {
+                state.user = user;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                showApp();
+                showToast(`Welcome back, ${user.name}`, 'success');
+            } else {
+                showToast('Invalid Email or Password', 'error');
+            }
+        });
+
+        function checkSession() {
+            const savedUser = localStorage.getItem('currentUser');
+            if(savedUser) {
+                state.user = JSON.parse(savedUser);
+                showApp();
+            }
+        }
+
+        function logout() {
+            state.user = null;
+            localStorage.removeItem('currentUser');
+            document.getElementById('appContainer').classList.add('hidden');
+            document.getElementById('authContainer').classList.remove('hidden');
+        }
+
+        function showApp() {
+            document.getElementById('authContainer').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+            document.getElementById('appContainer').classList.add('flex');
+            
+            document.getElementById('userNameDisplay').innerText = state.user.name;
+            document.getElementById('userAvatar').innerText = state.user.name.charAt(0).toUpperCase();
+            
+            renderNav();
+            navigate('home');
+        }
+
+        // --- Navigation & Routing ---
+        const views = {
+            home: renderHome,
+            subjects: renderSubjects,
+            tools: renderTools,
+            exams: renderExams,
+            chat: renderChat,
+            admin: renderAdmin
+        };
+
+        function renderNav() {
+            const nav = document.getElementById('mainNav');
+            nav.innerHTML = '';
+            
+            const items = [
+                { id: 'home', icon: 'fa-home', label: 'home' },
+                { id: 'subjects', icon: 'fa-book-medical', label: 'subjects' },
+                { id: 'tools', icon: 'fa-calculator', label: 'tools' },
+                { id: 'chat', icon: 'fa-comments', label: 'chat' },
+                { id: 'exams', icon: 'fa-calendar-alt', label: 'exams' },
+            ];
+
+            if(state.user.role === 'admin') {
+                items.push({ id: 'admin', icon: 'fa-cogs', label: 'admin' });
+            }
+
+            items.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <button onclick="navigate('${item.id}')" class="flex items-center w-full p-3 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-900/20 text-gray-600 dark:text-gray-300 transition group">
+                        <i class="fas ${item.icon} w-8 group-hover:text-purple-600 dark:group-hover:text-purple-400"></i>
+                        <span class="font-medium">${t(item.label)}</span>
+                    </button>
+                `;
+                nav.appendChild(li);
+            });
+        }
+
+        function navigate(viewId) {
+            document.getElementById('pageTitle').innerText = t(viewId);
+            const content = document.getElementById('contentArea');
+            content.innerHTML = ''; // Clear
+            content.classList.remove('animate-fade-in');
+            void content.offsetWidth; // Trigger reflow
+            content.classList.add('animate-fade-in');
+            
+            if(views[viewId]) views[viewId](content);
+        }
+
+        // --- Render Functions (Views) ---
+        
+        function renderHome(container) {
+            const posts = JSON.parse(localStorage.getItem(DB_KEYS.POSTS) || '[]');
+            
+            container.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="glass p-6 rounded-2xl border-b-4 border-blue-500">
+                        <h3 class="text-gray-500 dark:text-gray-400 text-sm">GPA</h3>
+                        <p class="text-3xl font-bold">3.8</p>
+                    </div>
+                    <div class="glass p-6 rounded-2xl border-b-4 border-green-500">
+                        <h3 class="text-gray-500 dark:text-gray-400 text-sm">Completed Tasks</h3>
+                        <p class="text-3xl font-bold">12</p>
+                    </div>
+                    <div class="glass p-6 rounded-2xl border-b-4 border-purple-500">
+                        <h3 class="text-gray-500 dark:text-gray-400 text-sm">Next Exam</h3>
+                        <p class="text-xl font-bold">Surgery - 15/10</p>
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-bold mb-4">${t('posts')}</h3>
+                <div class="space-y-4">
+                    ${posts.map(post => `
+                        <div class="glass p-6 rounded-2xl">
+                            <div class="flex justify-between mb-2">
+                                <span class="font-bold text-purple-600">${post.author}</span>
+                                <span class="text-xs text-gray-500">${post.date}</span>
+                            </div>
+                            <p class="mb-4">${post.content}</p>
+                            <div class="flex gap-4 text-gray-500 text-sm">
+                                <button class="hover:text-red-500 transition"><i class="far fa-heart"></i> ${post.likes}</button>
+                                <button class="hover:text-blue-500 transition"><i class="far fa-comment"></i> Comment</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderSubjects(container) {
+            const subjects = JSON.parse(localStorage.getItem(DB_KEYS.SUBJECTS) || '[]');
+            const userYear = state.user.year || 1;
+            
+            const filtered = state.user.role === 'admin' ? subjects : subjects.filter(s => s.year === userYear || s.type.includes('uni'));
+
+            container.innerHTML = `
+                <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+                    <button class="px-4 py-2 rounded-full bg-purple-600 text-white shadow">All</button>
+                    <button class="px-4 py-2 rounded-full glass hover:bg-purple-100 dark:hover:bg-gray-700">Year ${userYear}</button>
+                    <button class="px-4 py-2 rounded-full glass hover:bg-purple-100 dark:hover:bg-gray-700">University Req</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    ${filtered.map(sub => `
+                        <div class="glass p-6 rounded-2xl hover:shadow-xl transition group relative overflow-hidden">
+                            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-blue-500"></div>
+                            <h3 class="text-xl font-bold mb-2">${sub.name}</h3>
+                            <p class="text-sm text-gray-500 mb-4">Year ${sub.year} • Semester ${sub.semester}</p>
+                            <div class="flex gap-2">
+                                <button class="flex-1 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 rounded-lg text-sm font-bold hover:bg-purple-200"><i class="fas fa-file-pdf"></i> Slides</button>
+                                <button class="flex-1 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-lg text-sm font-bold hover:bg-blue-200"><i class="fas fa-video"></i> Recs</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderTools(container) {
+            container.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="glass p-6 rounded-2xl">
+                        <h3 class="font-bold text-lg mb-4 flex items-center gap-2"><i class="fas fa-calculator text-purple-600"></i> ${t('gpaCalc')}</h3>
+                        <div id="gpaRows" class="space-y-2 mb-4">
+                            <div class="flex gap-2">
+                                <input type="text" placeholder="Subject" class="flex-1 p-2 rounded bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+                                <input type="number" placeholder="Hours" class="w-20 p-2 rounded bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 gpa-hours">
+                                <select class="w-24 p-2 rounded bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 gpa-grade">
+                                    <option value="4.0">A+</option><option value="3.75">A</option><option value="3.5">B+</option>
+                                    <option value="3.0">B</option><option value="2.5">C+</option><option value="2.0">C</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button onclick="addGpaRow()" class="text-sm text-blue-500 hover:underline mb-4">+ Add Subject</button>
+                        <div class="flex justify-between items-center border-t pt-4">
+                            <button onclick="calcGPA()" class="px-6 py-2 bg-purple-600 text-white rounded-lg">Calculate</button>
+                            <span class="text-2xl font-bold" id="gpaResult">0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="glass p-6 rounded-2xl text-center relative overflow-hidden">
+                        <h3 class="font-bold text-lg mb-6 flex items-center justify-center gap-2"><i class="fas fa-clock text-red-500"></i> ${t('pomodoro')}</h3>
+                        <div class="text-6xl font-mono font-bold mb-8 tracking-wider" id="timerDisplay">25:00</div>
+                        <div class="flex justify-center gap-4">
+                            <button onclick="startTimer()" class="w-12 h-12 rounded-full bg-green-500 text-white hover:bg-green-600 flex items-center justify-center"><i class="fas fa-play"></i></button>
+                            <button onclick="pauseTimer()" class="w-12 h-12 rounded-full bg-yellow-500 text-white hover:bg-yellow-600 flex items-center justify-center"><i class="fas fa-pause"></i></button>
+                            <button onclick="resetTimer()" class="w-12 h-12 rounded-full bg-red-500 text-white hover:bg-red-600 flex items-center justify-center"><i class="fas fa-redo"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="glass p-6 rounded-2xl lg:col-span-2">
+                         <h3 class="font-bold text-lg mb-4 flex items-center gap-2"><i class="fas fa-check-circle text-green-500"></i> ${t('todo')}</h3>
+                         <div class="flex gap-2 mb-4">
+                             <input type="text" id="taskInput" class="flex-1 p-2 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600" placeholder="Add new task...">
+                             <button onclick="addTask()" class="px-4 bg-purple-600 text-white rounded-lg"><i class="fas fa-plus"></i></button>
+                         </div>
+                         <ul id="taskList" class="space-y-2"></ul>
+                    </div>
+                </div>
+            `;
+            loadTasks();
+        }
+
+        function renderAdmin(container) {
+            if(state.user.role !== 'admin') return container.innerHTML = '<p class="text-red-500">Access Denied</p>';
+            
+            const users = JSON.parse(localStorage.getItem(DB_KEYS.USERS));
+            
+            container.innerHTML = `
+                <div class="glass p-6 rounded-2xl mb-6">
+                    <h3 class="font-bold mb-4">Manage Users</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-right">
+                            <thead class="bg-gray-50 dark:bg-gray-700">
+                                <tr>
+                                    <th class="p-3">Name</th>
+                                    <th class="p-3">Email</th>
+                                    <th class="p-3">Role</th>
+                                    <th class="p-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${users.map(u => `
+                                    <tr class="border-b dark:border-gray-700">
+                                        <td class="p-3">${u.name}</td>
+                                        <td class="p-3">${u.email}</td>
+                                        <td class="p-3"><span class="px-2 py-1 rounded bg-blue-100 dark:bg-blue-900 text-blue-600 text-xs">${u.role}</span></td>
+                                        <td class="p-3">
+                                            <button onclick="deleteUser(${u.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="glass p-6 rounded-2xl">
+                     <h3 class="font-bold mb-4">System Settings</h3>
+                     <div class="flex gap-4">
+                        <button onclick="alert('Backup downloaded (demo)')" class="px-4 py-2 border border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50">Export JSON</button>
+                        <button onclick="localStorage.clear(); location.reload()" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">Reset System</button>
+                     </div>
+                </div>
+            `;
+        }
+        
+        function renderChat(container) {
+            container.innerHTML = `
+                <div class="h-[600px] glass rounded-2xl flex flex-col overflow-hidden">
+                    <div class="p-4 border-b dark:border-gray-700 bg-purple-50 dark:bg-gray-800 flex justify-between items-center">
+                        <span class="font-bold">General Chat Room</span>
+                        <span class="text-xs text-green-500">● 24 Online</span>
+                    </div>
+                    <div class="flex-1 p-4 overflow-y-auto space-y-4 bg-white/50 dark:bg-gray-900/50">
+                        <div class="flex gap-3">
+                            <div class="w-8 h-8 rounded-full bg-gray-300"></div>
+                            <div class="bg-white dark:bg-gray-700 p-3 rounded-lg rounded-tr-none shadow-sm max-w-[80%]">
+                                <p class="text-sm">Does anyone have the summaries for Anatomy?</p>
+                                <span class="text-xs text-gray-400 block mt-1">10:30 AM</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-3 flex-row-reverse">
+                            <div class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white text-xs">Me</div>
+                            <div class="bg-purple-600 text-white p-3 rounded-lg rounded-tl-none shadow-sm max-w-[80%]">
+                                <p class="text-sm">Yes, check the Subjects tab, I just uploaded them.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4 border-t dark:border-gray-700 bg-white dark:bg-gray-800 flex gap-2">
+                        <input type="text" class="flex-1 p-2 rounded-lg bg-gray-100 dark:bg-gray-700 border-none focus:ring-2 focus:ring-purple-500" placeholder="Type a message...">
+                        <button class="p-2 bg-purple-600 text-white rounded-lg w-10 h-10 flex items-center justify-center"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderExams(container) {
+             container.innerHTML = `
+                <div class="glass p-6 rounded-2xl">
+                    <h2 class="text-2xl font-bold mb-6">Exam Schedule</h2>
+                    <div class="space-y-4">
+                        <div class="flex items-center p-4 bg-white dark:bg-gray-800 rounded-xl border-r-4 border-red-500 shadow-sm">
+                            <div class="text-center px-4">
+                                <span class="block text-2xl font-bold text-red-500">15</span>
+                                <span class="text-xs uppercase font-bold text-gray-500">JAN</span>
+                            </div>
+                            <div class="flex-1 px-4 border-r dark:border-gray-700">
+                                <h4 class="font-bold text-lg">General Surgery</h4>
+                                <p class="text-sm text-gray-500">Hall 3B • 09:00 AM</p>
+                            </div>
+                            <div class="px-4">
+                                <span class="text-sm bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">Final</span>
+                            </div>
+                        </div>
+                         <div class="flex items-center p-4 bg-white dark:bg-gray-800 rounded-xl border-r-4 border-yellow-500 shadow-sm">
+                            <div class="text-center px-4">
+                                <span class="block text-2xl font-bold text-yellow-500">20</span>
+                                <span class="text-xs uppercase font-bold text-gray-500">JAN</span>
+                            </div>
+                            <div class="flex-1 px-4 border-r dark:border-gray-700">
+                                <h4 class="font-bold text-lg">Theriogenology</h4>
+                                <p class="text-sm text-gray-500">Lab 2 • 11:30 AM</p>
+                            </div>
+                            <div class="px-4">
+                                <span class="text-sm bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">Practical</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+             `;
+        }
+
+        // --- Utility Functions ---
+        function toggleTheme() {
+            state.theme = state.theme === 'light' ? 'dark' : 'light';
+            setTheme(state.theme);
+        }
+
+        function setTheme(theme) {
+            document.documentElement.classList.remove('dark', 'light');
+            document.documentElement.classList.add(theme);
+            document.getElementById('themeIcon').className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            localStorage.setItem('theme', theme);
+        }
+
+        function toggleLang() {
+            state.lang = state.lang === 'ar' ? 'en' : 'ar';
+            setLang(state.lang);
+        }
+
+        function setLang(lang) {
+            document.documentElement.lang = lang;
+            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            localStorage.setItem('lang', lang);
+            
+            // Re-render text
+            document.querySelectorAll('[data-translate]').forEach(el => {
+                el.innerText = t(el.getAttribute('data-translate'));
+            });
+            
+            if(state.user) renderNav(); // Refresh nav labels
+        }
+
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // --- Logic: Tools ---
+        function addGpaRow() {
+            const row = document.createElement('div');
+            row.className = 'flex gap-2';
+            row.innerHTML = `
+                <input type="text" placeholder="Subject" class="flex-1 p-2 rounded bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
+                <input type="number" placeholder="Hrs" class="w-20 p-2 rounded bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 gpa-hours">
+                <select class="w-24 p-2 rounded bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 gpa-grade">
+                     <option value="4.0">A+</option><option value="3.75">A</option><option value="3.5">B+</option>
+                     <option value="3.0">B</option><option value="2.5">C+</option><option value="2.0">C</option>
+                </select>
+            `;
+            document.getElementById('gpaRows').appendChild(row);
+        }
+
+        function calcGPA() {
+            let totalPoints = 0;
+            let totalHours = 0;
+            const hours = document.querySelectorAll('.gpa-hours');
+            const grades = document.querySelectorAll('.gpa-grade');
+            
+            hours.forEach((h, i) => {
+                const hr = parseFloat(h.value) || 0;
+                const gr = parseFloat(grades[i].value) || 0;
+                totalPoints += hr * gr;
+                totalHours += hr;
+            });
+            
+            const gpa = totalHours ? (totalPoints / totalHours).toFixed(2) : '0.00';
+            document.getElementById('gpaResult').innerText = gpa;
+        }
+
+        // Pomodoro
+        let timerInterval;
+        let timeLeft = 25 * 60;
+        
+        function updateTimerDisplay() {
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            const el = document.getElementById('timerDisplay');
+            if(el) el.innerText = `${m}:${s}`;
+        }
+
+        function startTimer() {
+            if(timerInterval) return;
+            timerInterval = setInterval(() => {
+                if(timeLeft > 0) {
+                    timeLeft--;
+                    updateTimerDisplay();
+                } else {
+                    clearInterval(timerInterval);
+                    showToast('Time is up!', 'success');
+                    // Play sound here
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() { clearInterval(timerInterval); timerInterval = null; }
+        function resetTimer() { pauseTimer(); timeLeft = 25 * 60; updateTimerDisplay(); }
+
+        // ToDo
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            if(!input.value) return;
+            
+            const tasks = JSON.parse(localStorage.getItem(DB_KEYS.TASKS) || '[]');
+            tasks.push({ txt: input.value, done: false });
+            localStorage.setItem(DB_KEYS.TASKS, JSON.stringify(tasks));
+            input.value = '';
+            loadTasks();
+        }
+
+        function loadTasks() {
+            const list = document.getElementById('taskList');
+            if(!list) return;
+            const tasks = JSON.parse(localStorage.getItem(DB_KEYS.TASKS) || '[]');
+            list.innerHTML = tasks.map((t, i) => `
+                <li class="flex items-center gap-3 p-3 glass rounded-lg">
+                    <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTask(${i})" class="w-5 h-5 text-purple-600 rounded">
+                    <span class="${t.done ? 'line-through opacity-50' : ''}">${t.txt}</span>
+                    <button onclick="delTask(${i})" class="mr-auto text-red-400 hover:text-red-600"><i class="fas fa-times"></i></button>
+                </li>
+            `).join('');
+        }
+        
+        window.toggleTask = (i) => {
+            const tasks = JSON.parse(localStorage.getItem(DB_KEYS.TASKS));
+            tasks[i].done = !tasks[i].done;
+            localStorage.setItem(DB_KEYS.TASKS, JSON.stringify(tasks));
+            loadTasks();
+        };
+
+        window.delTask = (i) => {
+             const tasks = JSON.parse(localStorage.getItem(DB_KEYS.TASKS));
+             tasks.splice(i, 1);
+             localStorage.setItem(DB_KEYS.TASKS, JSON.stringify(tasks));
+             loadTasks();
+        };
+
+        window.deleteUser = (id) => {
+            if(confirm('Delete this user?')) {
+                let users = JSON.parse(localStorage.getItem(DB_KEYS.USERS));
+                users = users.filter(u => u.id !== id);
+                localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
+                navigate('admin'); // Refresh
+            }
+        }
+
+        // Global exposure for HTML inline clicks
+        window.toggleAuth = () => alert('Registration uses Admin Panel in this Demo.');
+    </script>
+</body>
+</html>
